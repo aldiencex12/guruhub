@@ -41,10 +41,26 @@ export class AssessmentsRepository {
       conditions.push(eq(assessments.academicYearId, filters.academicYearId));
     }
 
-    return await db
+    const results = await db
       .select()
       .from(assessments)
       .where(and(...conditions));
+
+    if (results.length === 0) return [];
+
+    const assessmentIds = results.map(a => a.id);
+    const scoresList = await db
+      .select()
+      .from(assessmentScores)
+      .where(inArray(assessmentScores.assessmentId, assessmentIds));
+
+    return results.map(a => {
+      const scores = scoresList.filter(s => s.assessmentId === a.id);
+      return {
+        ...a,
+        scores
+      };
+    });
   }
 
   async findById(schoolId: number, id: number) {
