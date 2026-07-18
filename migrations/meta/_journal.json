@@ -43,6 +43,13 @@
       "when": 1781538640032,
       "tag": "0005_sharp_lorna_dane",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1784341445157,
+      "tag": "0006_lush_la_nuit",
+      "breakpoints": true
     }
   ]
 }
