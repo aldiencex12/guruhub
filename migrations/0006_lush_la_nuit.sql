@@ -1,5 +1,5 @@
 CREATE TABLE `attendance_details` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`attendance_id` bigint unsigned NOT NULL,
 	`student_id` bigint unsigned NOT NULL,
 	`status` enum('PRESENT','SICK','PERMISSION','ABSENT') NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE `attendance_details` (
 );
 --> statement-breakpoint
 CREATE TABLE `assessment_scores` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`assessment_id` bigint unsigned NOT NULL,
 	`student_id` bigint unsigned NOT NULL,
 	`score` int NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE `assessment_scores` (
 );
 --> statement-breakpoint
 CREATE TABLE `class_members` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`school_id` bigint unsigned NOT NULL,
 	`class_id` bigint unsigned NOT NULL,
 	`student_id` bigint unsigned NOT NULL,
@@ -34,7 +34,7 @@ CREATE TABLE `class_members` (
 );
 --> statement-breakpoint
 CREATE TABLE `teaching_journals` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`school_id` bigint unsigned NOT NULL,
 	`schedule_id` bigint unsigned NOT NULL,
 	`teacher_id` bigint unsigned NOT NULL,
@@ -53,7 +53,7 @@ CREATE TABLE `teaching_journals` (
 );
 --> statement-breakpoint
 CREATE TABLE `assessment_categories` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`school_id` bigint unsigned NOT NULL,
 	`teacher_id` bigint unsigned,
 	`name` varchar(255) NOT NULL,
@@ -68,7 +68,7 @@ CREATE TABLE `assessment_categories` (
 );
 --> statement-breakpoint
 CREATE TABLE `student_final_grades` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`school_id` bigint unsigned NOT NULL,
 	`student_id` bigint unsigned NOT NULL,
 	`class_id` bigint unsigned NOT NULL,
@@ -84,7 +84,7 @@ CREATE TABLE `student_final_grades` (
 );
 --> statement-breakpoint
 CREATE TABLE `extracurriculars` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`school_id` bigint unsigned NOT NULL,
 	`name` varchar(255) NOT NULL,
 	`description` text,
@@ -93,7 +93,7 @@ CREATE TABLE `extracurriculars` (
 );
 --> statement-breakpoint
 CREATE TABLE `p5_projects` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`report_card_id` bigint unsigned NOT NULL,
 	`theme` varchar(255) NOT NULL,
 	`predicate` enum('SB','B','C','PB') NOT NULL,
@@ -102,7 +102,7 @@ CREATE TABLE `p5_projects` (
 );
 --> statement-breakpoint
 CREATE TABLE `report_card_attendances` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`report_card_id` bigint unsigned NOT NULL,
 	`sick` int NOT NULL DEFAULT 0,
 	`permission` int NOT NULL DEFAULT 0,
@@ -112,7 +112,7 @@ CREATE TABLE `report_card_attendances` (
 );
 --> statement-breakpoint
 CREATE TABLE `report_card_subjects` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`report_card_id` bigint unsigned NOT NULL,
 	`subject_id` bigint unsigned NOT NULL,
 	`final_score` double NOT NULL,
@@ -123,7 +123,7 @@ CREATE TABLE `report_card_subjects` (
 );
 --> statement-breakpoint
 CREATE TABLE `report_cards` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`school_id` bigint unsigned NOT NULL,
 	`student_id` bigint unsigned NOT NULL,
 	`class_id` bigint unsigned NOT NULL,
@@ -139,7 +139,7 @@ CREATE TABLE `report_cards` (
 );
 --> statement-breakpoint
 CREATE TABLE `student_achievements` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`report_card_id` bigint unsigned NOT NULL,
 	`title` varchar(255) NOT NULL,
 	`level` enum('SCHOOL','DISTRICT','PROVINCE','NATIONAL','INTERNATIONAL') NOT NULL,
@@ -148,7 +148,7 @@ CREATE TABLE `student_achievements` (
 );
 --> statement-breakpoint
 CREATE TABLE `student_extracurriculars` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`report_card_id` bigint unsigned NOT NULL,
 	`extracurricular_id` bigint unsigned NOT NULL,
 	`predicate` enum('A','B','C','D') NOT NULL,

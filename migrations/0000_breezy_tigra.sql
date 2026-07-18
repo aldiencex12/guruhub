@@ -1,5 +1,5 @@
 CREATE TABLE `schools` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`npsn` varchar(8) NOT NULL,
 	`name` varchar(255) NOT NULL,
 	`level` enum('SMP','SMA') NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE `schools` (
 );
 --> statement-breakpoint
 CREATE TABLE `academic_years` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`school_id` bigint unsigned NOT NULL,
 	`year` varchar(9) NOT NULL,
 	`semester` enum('Ganjil','Genap') NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE `academic_years` (
 );
 --> statement-breakpoint
 CREATE TABLE `users` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`school_id` bigint unsigned NOT NULL,
 	`email` varchar(255) NOT NULL,
 	`password_hash` varchar(255) NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE `users` (
 );
 --> statement-breakpoint
 CREATE TABLE `teachers` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`school_id` bigint unsigned NOT NULL,
 	`user_id` bigint unsigned,
 	`nip` varchar(18),
@@ -52,7 +52,7 @@ CREATE TABLE `teachers` (
 );
 --> statement-breakpoint
 CREATE TABLE `students` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`school_id` bigint unsigned NOT NULL,
 	`user_id` bigint unsigned,
 	`nisn` varchar(10) NOT NULL,
@@ -69,7 +69,7 @@ CREATE TABLE `students` (
 );
 --> statement-breakpoint
 CREATE TABLE `class_students` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`school_id` bigint unsigned NOT NULL,
 	`class_id` bigint unsigned NOT NULL,
 	`student_id` bigint unsigned NOT NULL,
@@ -78,7 +78,7 @@ CREATE TABLE `class_students` (
 );
 --> statement-breakpoint
 CREATE TABLE `classes` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`school_id` bigint unsigned NOT NULL,
 	`academic_year_id` bigint unsigned NOT NULL,
 	`homeroom_teacher_id` bigint unsigned,
@@ -91,7 +91,7 @@ CREATE TABLE `classes` (
 );
 --> statement-breakpoint
 CREATE TABLE `subject_teachers` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`school_id` bigint unsigned NOT NULL,
 	`class_id` bigint unsigned NOT NULL,
 	`subject_id` bigint unsigned NOT NULL,
@@ -101,7 +101,7 @@ CREATE TABLE `subject_teachers` (
 );
 --> statement-breakpoint
 CREATE TABLE `subjects` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`school_id` bigint unsigned NOT NULL,
 	`name` varchar(100) NOT NULL,
 	`code` varchar(20) NOT NULL,
@@ -113,7 +113,7 @@ CREATE TABLE `subjects` (
 );
 --> statement-breakpoint
 CREATE TABLE `schedules` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`school_id` bigint unsigned NOT NULL,
 	`subject_teacher_id` bigint unsigned NOT NULL,
 	`day` enum('Senin','Selasa','Rabu','Kamis','Jumat','Sabtu') NOT NULL,
@@ -124,7 +124,7 @@ CREATE TABLE `schedules` (
 );
 --> statement-breakpoint
 CREATE TABLE `attendances` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`school_id` bigint unsigned NOT NULL,
 	`student_id` bigint unsigned NOT NULL,
 	`academic_year_id` bigint unsigned NOT NULL,
@@ -139,7 +139,7 @@ CREATE TABLE `attendances` (
 );
 --> statement-breakpoint
 CREATE TABLE `journals` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`school_id` bigint unsigned NOT NULL,
 	`subject_teacher_id` bigint unsigned NOT NULL,
 	`date` date NOT NULL,
@@ -152,7 +152,7 @@ CREATE TABLE `journals` (
 );
 --> statement-breakpoint
 CREATE TABLE `assessments` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`school_id` bigint unsigned NOT NULL,
 	`student_id` bigint unsigned NOT NULL,
 	`subject_teacher_id` bigint unsigned NOT NULL,
@@ -166,7 +166,7 @@ CREATE TABLE `assessments` (
 );
 --> statement-breakpoint
 CREATE TABLE `raports` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`school_id` bigint unsigned NOT NULL,
 	`student_id` bigint unsigned NOT NULL,
 	`class_id` bigint unsigned NOT NULL,
@@ -185,7 +185,7 @@ CREATE TABLE `raports` (
 );
 --> statement-breakpoint
 CREATE TABLE `notifications` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`school_id` bigint unsigned NOT NULL,
 	`user_id` bigint unsigned NOT NULL,
 	`title` varchar(150) NOT NULL,
@@ -196,7 +196,7 @@ CREATE TABLE `notifications` (
 );
 --> statement-breakpoint
 CREATE TABLE `audit_logs` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`school_id` bigint unsigned,
 	`user_id` bigint unsigned,
 	`action` varchar(100) NOT NULL,

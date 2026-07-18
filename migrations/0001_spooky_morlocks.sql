@@ -1,5 +1,5 @@
 CREATE TABLE `sessions` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`school_id` bigint unsigned NOT NULL,
 	`user_id` bigint unsigned NOT NULL,
 	`token_id` varchar(36) NOT NULL,
