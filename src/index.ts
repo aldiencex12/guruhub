@@ -85,7 +85,10 @@ const app = new Elysia()
   .use(dashboardRoutes)
   .use(pdfGeneratorRoutes)
   .use(importRoutes)
-  .listen(3000);
+  .listen({
+    port: process.env.PORT ? parseInt(process.env.PORT) : 8000,
+    hostname: "0.0.0.0"
+  });
 
 console.log(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`);
 app.onError(({ code, error, request, set }) => { 
