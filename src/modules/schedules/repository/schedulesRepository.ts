@@ -1,6 +1,8 @@
 import { eq, and, isNull, inArray } from "drizzle-orm";
 import { db } from "../../../db";
 import { schedules } from "../../../schema/schedules";
+import { attendances } from "../../../schema/attendances";
+import { teachingJournals } from "../../../schema/teachingJournals";
 
 export class SchedulesRepository {
   async findAll(schoolId: number, teacherId?: number, query?: { classId?: string }) {
@@ -100,47 +102,129 @@ export class SchedulesRepository {
   }
 
   async softDelete(schoolId: number, id: number) {
-    await db
-      .update(schedules)
-      .set({
-        deletedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(schedules.schoolId, schoolId),
-          eq(schedules.id, id),
-          isNull(schedules.deletedAt)
-        )
-      );
+    await db.transaction(async (tx) => {
+      await tx
+        .update(schedules)
+        .set({
+          deletedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(schedules.schoolId, schoolId),
+            eq(schedules.id, id),
+            isNull(schedules.deletedAt)
+          )
+        );
+
+      await tx
+        .update(attendances)
+        .set({
+          deletedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(attendances.schoolId, schoolId),
+            eq(attendances.scheduleId, id),
+            isNull(attendances.deletedAt)
+          )
+        );
+
+      await tx
+        .update(teachingJournals)
+        .set({
+          deletedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(teachingJournals.schoolId, schoolId),
+            eq(teachingJournals.scheduleId, id),
+            isNull(teachingJournals.deletedAt)
+          )
+        );
+    });
   }
 
   async bulkSoftDelete(schoolId: number, ids: number[]) {
     if (ids.length === 0) return;
-    await db
-      .update(schedules)
-      .set({
-        deletedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(schedules.schoolId, schoolId),
-          inArray(schedules.id, ids),
-          isNull(schedules.deletedAt)
-        )
-      );
+    await db.transaction(async (tx) => {
+      await tx
+        .update(schedules)
+        .set({
+          deletedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(schedules.schoolId, schoolId),
+            inArray(schedules.id, ids),
+            isNull(schedules.deletedAt)
+          )
+        );
+
+      await tx
+        .update(attendances)
+        .set({
+          deletedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(attendances.schoolId, schoolId),
+            inArray(attendances.scheduleId, ids),
+            isNull(attendances.deletedAt)
+          )
+        );
+
+      await tx
+        .update(teachingJournals)
+        .set({
+          deletedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(teachingJournals.schoolId, schoolId),
+            inArray(teachingJournals.scheduleId, ids),
+            isNull(teachingJournals.deletedAt)
+          )
+        );
+    });
   }
 
   async softDeleteAll(schoolId: number) {
-    await db
-      .update(schedules)
-      .set({
-        deletedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(schedules.schoolId, schoolId),
-          isNull(schedules.deletedAt)
-        )
-      );
+    await db.transaction(async (tx) => {
+      await tx
+        .update(schedules)
+        .set({
+          deletedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(schedules.schoolId, schoolId),
+            isNull(schedules.deletedAt)
+          )
+        );
+
+      await tx
+        .update(attendances)
+        .set({
+          deletedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(attendances.schoolId, schoolId),
+            isNull(attendances.deletedAt)
+          )
+        );
+
+      await tx
+        .update(teachingJournals)
+        .set({
+          deletedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(teachingJournals.schoolId, schoolId),
+            isNull(teachingJournals.deletedAt)
+          )
+        );
+    });
   }
 }

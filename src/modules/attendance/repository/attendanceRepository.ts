@@ -202,19 +202,17 @@ export class AttendanceRepository {
     const conditions = [
       eq(attendances.schoolId, schoolId),
       isNull(attendances.deletedAt),
+      isNull(schedules.deletedAt),
     ];
 
     if (filters.date) {
       conditions.push(eq(attendances.attendanceDate, filters.date));
     }
 
-    let needsScheduleJoin = false;
-    
     if (filters.classId) {
       conditions.push(eq(schedules.classId, filters.classId));
-      needsScheduleJoin = true;
     }
-    
+
     if (filters.teacherId) {
       if (filters.allowedHomeroomClassIds && filters.allowedHomeroomClassIds.length > 0) {
         conditions.push(
@@ -223,35 +221,26 @@ export class AttendanceRepository {
             inArray(schedules.classId, filters.allowedHomeroomClassIds)
           )
         );
-        needsScheduleJoin = true;
       } else {
         conditions.push(eq(attendances.teacherId, filters.teacherId));
       }
     } else if (filters.allowedHomeroomClassIds && filters.allowedHomeroomClassIds.length > 0) {
       conditions.push(inArray(schedules.classId, filters.allowedHomeroomClassIds));
-      needsScheduleJoin = true;
-    }
-
-    if (needsScheduleJoin) {
-      return await db
-        .select({
-          id: attendances.id,
-          schoolId: attendances.schoolId,
-          scheduleId: attendances.scheduleId,
-          teacherId: attendances.teacherId,
-          attendanceDate: attendances.attendanceDate,
-          notes: attendances.notes,
-          createdAt: attendances.createdAt,
-          updatedAt: attendances.updatedAt,
-        })
-        .from(attendances)
-        .innerJoin(schedules, eq(attendances.scheduleId, schedules.id))
-        .where(and(...conditions));
     }
 
     return await db
-      .select()
+      .select({
+        id: attendances.id,
+        schoolId: attendances.schoolId,
+        scheduleId: attendances.scheduleId,
+        teacherId: attendances.teacherId,
+        attendanceDate: attendances.attendanceDate,
+        notes: attendances.notes,
+        createdAt: attendances.createdAt,
+        updatedAt: attendances.updatedAt,
+      })
       .from(attendances)
+      .innerJoin(schedules, eq(attendances.scheduleId, schedules.id))
       .where(and(...conditions));
   }
 
@@ -292,7 +281,9 @@ export class AttendanceRepository {
           eq(attendances.schoolId, schoolId),
           eq(schedules.classId, classId),
           like(attendances.attendanceDate, `${month}-%`),
-          isNull(attendances.deletedAt)
+          isNull(attendances.deletedAt),
+          isNull(schedules.deletedAt),
+          isNull(subjects.deletedAt)
         )
       );
 
