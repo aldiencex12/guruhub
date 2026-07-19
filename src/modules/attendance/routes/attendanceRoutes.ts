@@ -121,6 +121,14 @@ export const attendanceRoutes = new Elysia({ prefix: "/attendances" })
           200: "AttendanceResponse"
         }
       })
+  )
+
+  // Rute Penghapusan (Hanya boleh diakses oleh SuperAdmin, SchoolAdmin, Principal)
+  .group("", (app) =>
+    app
+      .guard({
+        beforeHandle: requireRoles(["SuperAdmin", "SchoolAdmin", "Principal"])
+      })
       // 5. DELETE /attendances/:id
       .delete("/:id", controller.delete, {
         response: {
