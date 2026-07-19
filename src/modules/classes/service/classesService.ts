@@ -5,7 +5,7 @@ import { classes } from "../../../schema/classes";
 import { academicYears } from "../../../schema/academicYears";
 import { schedules } from "../../../schema/schedules";
 import { db } from "../../../db";
-import { eq } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 import { UserContext, getTeacherIdFromUserId } from "../../../utils/rbac";
 
 export class ClassesService {
@@ -20,7 +20,15 @@ export class ClassesService {
     if (user.role === "Teacher" || user.role === "HomeroomTeacher") {
       const myTeacherId = await getTeacherIdFromUserId(schoolId, user.id);
       
-      const scheds = await db.select({ classId: schedules.classId }).from(schedules).where(eq(schedules.teacherId, myTeacherId));
+      const scheds = await db
+        .select({ classId: schedules.classId })
+        .from(schedules)
+        .where(
+          and(
+            eq(schedules.teacherId, myTeacherId),
+            isNull(schedules.deletedAt)
+          )
+        );
       const taughtClassIds = scheds.map(s => s.classId);
       
       const homeroomClasses = await db.select({ id: classes.id }).from(classes).where(eq(classes.homeroomTeacherId, myTeacherId));
