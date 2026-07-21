@@ -74,10 +74,11 @@ export class StudentsRepository {
   }
 
   async findByNisn(nisn: string) {
+    // Hanya cek siswa yang belum dihapus (soft delete)
     const result = await db
       .select()
       .from(students)
-      .where(eq(students.nisn, nisn))
+      .where(and(eq(students.nisn, nisn), isNull(students.deletedAt)))
       .limit(1);
     return result[0] || null;
   }
