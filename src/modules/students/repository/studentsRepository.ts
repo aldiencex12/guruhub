@@ -121,6 +121,7 @@ export class StudentsRepository {
       .update(students)
       .set({
         deletedAt: new Date(),
+        nisn: null as any, // Bebaskan unique constraint agar NISN bisa dipakai ulang
       })
       .where(
         and(
@@ -136,6 +137,7 @@ export class StudentsRepository {
       .update(students)
       .set({
         deletedAt: new Date(),
+        nisn: null as any, // Bebaskan unique constraint agar NISN bisa dipakai ulang
       })
       .where(
         and(
