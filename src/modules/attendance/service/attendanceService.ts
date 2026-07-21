@@ -158,8 +158,8 @@ export class AttendanceService {
     // 3. Validasi Hak Akses Guru
     await this.validateTeacherPermission(schoolId, user, schedule.teacherId);
 
-    // 4. Soft delete
-    await this.repository.softDeleteAttendance(schoolId, id);
+    // 4. Hard delete agar absensi bisa dibuat ulang di tanggal yang sama
+    await this.repository.hardDeleteAttendance(schoolId, id);
   }
 
   async getAllAttendances(

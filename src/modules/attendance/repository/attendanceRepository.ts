@@ -188,10 +188,14 @@ export class AttendanceRepository {
     });
   }
 
-  async softDeleteAttendance(schoolId: number, id: number) {
+  async hardDeleteAttendance(schoolId: number, id: number) {
+    // Hard delete agar unique index (school_id, schedule_id, attendance_date)
+    // dibebaskan sepenuhnya dan absensi bisa dibuat ulang di tanggal yang sama
     await db
-      .update(attendances)
-      .set({ deletedAt: new Date() })
+      .delete(attendanceDetails)
+      .where(eq(attendanceDetails.attendanceId, id));
+    await db
+      .delete(attendances)
       .where(and(eq(attendances.id, id), eq(attendances.schoolId, schoolId)));
   }
 
