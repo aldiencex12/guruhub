@@ -20,11 +20,11 @@ export const teachingJournalsRoutes = new Elysia({ prefix: "/teaching-journals" 
       .get("/:id", controller.getById)
   )
 
-  // Rute Create & Update (SuperAdmin, SchoolAdmin, Principal, Teacher)
+  // Rute Create & Update (SuperAdmin, SchoolAdmin, Principal, Teacher, HomeroomTeacher)
   .group("", (app) =>
     app
       .guard({
-        beforeHandle: requireRoles(["SuperAdmin", "SchoolAdmin", "Principal", "Teacher"]),
+        beforeHandle: requireRoles(["SuperAdmin", "SchoolAdmin", "Principal", "Teacher", "HomeroomTeacher"]),
       })
       .post("/", controller.create, {
         body: CreateTeachingJournalDto,
@@ -34,11 +34,11 @@ export const teachingJournalsRoutes = new Elysia({ prefix: "/teaching-journals" 
       })
   )
 
-  // Rute Delete (SuperAdmin, SchoolAdmin, Principal)
+  // Rute Delete (SuperAdmin, SchoolAdmin, Principal, Teacher, HomeroomTeacher)
   .group("", (app) =>
     app
       .guard({
-        beforeHandle: requireRoles(["SuperAdmin", "SchoolAdmin", "Principal"]),
+        beforeHandle: requireRoles(["SuperAdmin", "SchoolAdmin", "Principal", "Teacher", "HomeroomTeacher"]),
       })
       .delete("/:id", controller.delete)
   );
