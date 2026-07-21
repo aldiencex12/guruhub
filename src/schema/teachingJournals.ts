@@ -1,4 +1,4 @@
-import { mysqlTable, serial, varchar, text, date, timestamp, bigint, uniqueIndex } from "drizzle-orm/mysql-core";
+import { mysqlTable, serial, varchar, text, date, timestamp, bigint } from "drizzle-orm/mysql-core";
 import { schools } from "./schools";
 import { schedules } from "./schedules";
 import { teachers } from "./teachers";
@@ -19,6 +19,4 @@ export const teachingJournals = mysqlTable("teaching_journals", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow().onUpdateNow(),
   deletedAt: timestamp("deleted_at"),
-}, (table) => [
-  uniqueIndex("uq_schedule_journal_date").on(table.scheduleId, table.journalDate)
-]);
+});
