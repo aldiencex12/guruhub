@@ -548,6 +548,30 @@ export class AttendanceService {
         }
       }
 
+      // Hapus / Batalkan otomatis Poin Alpha jika status diubah dari ABSENT menjadi PRESENT / SICK / PERMISSION
+      const nonAbsentStudents = details.filter(d => d.status !== "ABSENT");
+      for (const st of nonAbsentStudents) {
+        const existingAlpha = await db
+          .select({ incidentId: disciplineIncidentStudents.incidentId })
+          .from(disciplineIncidentStudents)
+          .innerJoin(disciplineIncidents, eq(disciplineIncidentStudents.incidentId, disciplineIncidents.id))
+          .where(
+            and(
+              eq(disciplineIncidents.schoolId, schoolId),
+              eq(disciplineIncidentStudents.studentId, st.studentId),
+              eq(disciplineIncidentStudents.disciplineTypeId, alphaType.id),
+              sql`DATE(${disciplineIncidents.incidentDate}) = ${attendanceDate}`,
+              isNull(disciplineIncidents.deletedAt)
+            )
+          );
+
+        for (const row of existingAlpha) {
+          await db.update(disciplineIncidents)
+            .set({ deletedAt: new Date() })
+            .where(eq(disciplineIncidents.id, row.incidentId));
+        }
+      }
+
       // Trigger automatic sanction evaluation
       await this.disciplineService.getSanctionLogs(schoolId, {});
     } catch (err) {
