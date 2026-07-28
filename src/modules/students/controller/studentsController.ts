@@ -4,12 +4,13 @@ const studentsService = new StudentsService();
 
 export class StudentsController {
   async getAll({ schoolId, query, user }: any) {
+    const classId = query.classId ? parseInt(query.classId, 10) : undefined;
     const page = query.page ? parseInt(query.page, 10) : 1;
-    const limit = query.limit ? parseInt(query.limit, 10) : 10;
+    const limit = query.limit ? parseInt(query.limit, 10) : (classId ? 500 : 10);
     const search = query.search || undefined;
     const status = query.status || undefined;
 
-    const result = await studentsService.getAllStudents(schoolId, { page, limit, search, status }, user);
+    const result = await studentsService.getAllStudents(schoolId, { page, limit, search, status, classId }, user);
     return {
       success: true,
       message: "Daftar siswa berhasil diambil",

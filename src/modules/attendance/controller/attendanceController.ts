@@ -19,11 +19,19 @@ export class AttendanceController {
   async getRecap({ schoolId, user, query }: any) {
     const classId = parseInt(query.classId, 10);
     const month = query.month;
+    const semester = query.semester ? parseInt(query.semester, 10) : undefined;
+    const year = query.year ? parseInt(query.year, 10) : new Date().getFullYear();
 
-    const data = await attendanceService.getAttendanceRecap(schoolId, user, classId, month);
+    let data;
+    if (semester && (semester === 1 || semester === 2)) {
+      data = await attendanceService.getSemesterAttendanceRecap(schoolId, classId, semester as 1 | 2, year);
+    } else {
+      data = await attendanceService.getAttendanceRecap(schoolId, user, classId, month || new Date().toISOString().slice(0, 7));
+    }
+
     return {
       success: true,
-      message: "Rekap absensi bulanan berhasil diambil",
+      message: "Rekap absensi berhasil diambil",
       data,
     };
   }
@@ -43,6 +51,15 @@ export class AttendanceController {
     return {
       success: true,
       message: "Absensi berhasil disimpan",
+      data,
+    };
+  }
+
+  async createDaily({ schoolId, user, body }: any) {
+    const data = await attendanceService.saveClassDailyAttendance(schoolId, user, body);
+    return {
+      success: true,
+      message: "Presensi harian kelas berhasil disimpan",
       data,
     };
   }

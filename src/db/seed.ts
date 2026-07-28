@@ -9,6 +9,17 @@ import { schedules } from "../schema/schedules";
 import { academicYears } from "../schema/academicYears";
 import { attendances, attendanceDetails } from "../schema/attendances";
 import { hashPassword } from "../utils/password";
+import {
+  disciplineCategories,
+  disciplineTypes,
+  disciplinePolicies,
+  disciplineIncidents,
+  disciplineIncidentStudents,
+  disciplineIncidentWitnesses,
+  disciplineIncidentAttachments,
+  disciplineSanctionThresholds,
+  disciplineSanctionLogs,
+} from "../schema/discipline";
 
 async function seed() {
   console.log("Seeding database with rich mock data for all APIs...");
@@ -17,6 +28,18 @@ async function seed() {
   await db.delete(attendanceDetails);
   await db.delete(attendances);
   await db.delete(classStudents);
+  
+  // Clean up discipline tables first due to foreign keys referencing students, teachers, classes, academicYears, users, schools
+  await db.delete(disciplineSanctionLogs);
+  await db.delete(disciplineSanctionThresholds);
+  await db.delete(disciplineIncidentAttachments);
+  await db.delete(disciplineIncidentWitnesses);
+  await db.delete(disciplineIncidentStudents);
+  await db.delete(disciplineIncidents);
+  await db.delete(disciplinePolicies);
+  await db.delete(disciplineTypes);
+  await db.delete(disciplineCategories);
+
   await db.delete(students);
   await db.delete(classes);
   await db.delete(schedules);
@@ -201,6 +224,134 @@ async function seed() {
   ]);
 
   console.log("Initial Attendances marked.");
+
+  // 11. Create default discipline policy for School 1
+  await db.insert(disciplinePolicies).values({
+    schoolId: school1Id,
+    pointResetCycle: "ACADEMIC_YEAR",
+    maxActivePoints: 100,
+    autoSanctionEnabled: true,
+    carryForwardPercentage: 0,
+  });
+  console.log("Default Discipline Policy created.");
+
+  // 12. Create discipline categories
+  // Violations
+  const [catV1] = await db.insert(disciplineCategories).values({ schoolId: school1Id, code: "CAT-V-MIN", name: "Pelanggaran Ringan", type: "VIOLATION", description: "Pelanggaran tata tertib kategori ringan" });
+  const [catV2] = await db.insert(disciplineCategories).values({ schoolId: school1Id, code: "CAT-V-MOD", name: "Pelanggaran Sedang", type: "VIOLATION", description: "Pelanggaran tata tertib kategori sedang" });
+  const [catV3] = await db.insert(disciplineCategories).values({ schoolId: school1Id, code: "CAT-V-MAJ", name: "Pelanggaran Berat", type: "VIOLATION", description: "Pelanggaran tata tertib kategori berat" });
+  
+  // Rewards
+  const [catR1] = await db.insert(disciplineCategories).values({ schoolId: school1Id, code: "CAT-R-ACA", name: "Prestasi Akademik", type: "REWARD", description: "Penghargaan atas prestasi bidang akademik" });
+  const [catR2] = await db.insert(disciplineCategories).values({ schoolId: school1Id, code: "CAT-R-NAC", name: "Prestasi Non-Akademik", type: "REWARD", description: "Penghargaan atas prestasi bidang non-akademik" });
+  const [catR3] = await db.insert(disciplineCategories).values({ schoolId: school1Id, code: "CAT-R-CHA", name: "Karakter & Kedisiplinan", type: "REWARD", description: "Penghargaan atas kepribadian dan kedisiplinan luar biasa" });
+  
+  console.log("Discipline Categories seeded.");
+
+  // 13. Create discipline types (Rules)
+  // Violations - Minor
+  const [typeVLate] = await db.insert(disciplineTypes).values({ schoolId: school1Id, categoryId: catV1.insertId, code: "V-LATE", name: "Terlambat Masuk Sekolah", defaultPoints: 5, description: "Hadir setelah bel masuk berbunyi" });
+  const [typeVUniform] = await db.insert(disciplineTypes).values({ schoolId: school1Id, categoryId: catV1.insertId, code: "V-UNIFORM", name: "Atribut Seragam Tidak Lengkap", defaultPoints: 5, description: "Tidak memakai dasi, sabuk, atau kaos kaki sesuai ketentuan" });
+  
+  // Violations - Moderate
+  const [typeVSkip] = await db.insert(disciplineTypes).values({ schoolId: school1Id, categoryId: catV2.insertId, code: "V-SKIP", name: "Membolos Jam Pelajaran", defaultPoints: 15, description: "Meninggalkan kelas tanpa izin selama KBM" });
+  const [typeVLang] = await db.insert(disciplineTypes).values({ schoolId: school1Id, categoryId: catV2.insertId, code: "V-LANG", name: "Menggunakan Bahasa Tidak Sopan", defaultPoints: 10, description: "Mengucapkan kata-kata kasar di lingkungan sekolah" });
+  
+  // Violations - Major
+  const [typeVFight] = await db.insert(disciplineTypes).values({ schoolId: school1Id, categoryId: catV3.insertId, code: "V-FIGHT", name: "Perkelahian / Tawuran", defaultPoints: 50, description: "Melakukan kekerasan fisik terhadap sesama siswa" });
+  const [typeVSmoke] = await db.insert(disciplineTypes).values({ schoolId: school1Id, categoryId: catV3.insertId, code: "V-SMOKE", name: "Merokok di Area Sekolah", defaultPoints: 30, description: "Membawa atau merokok di dalam kawasan sekolah" });
+
+  // Rewards - Academic
+  const [typeROlymp] = await db.insert(disciplineTypes).values({ schoolId: school1Id, categoryId: catR1.insertId, code: "R-OLYMP", name: "Pemenang Olimpiade / Lomba Sains", defaultPoints: 30, description: "Juara 1, 2, atau 3 tingkat Kabupaten/Provinsi/Nasional" });
+  const [typeRRank] = await db.insert(disciplineTypes).values({ schoolId: school1Id, categoryId: catR1.insertId, code: "R-RANK", name: "Juara Umum Kelas", defaultPoints: 20, description: "Meraih peringkat 1 di kelas pada akhir semester" });
+
+  // Rewards - Character
+  const [typeRHelp] = await db.insert(disciplineTypes).values({ schoolId: school1Id, categoryId: catR3.insertId, code: "R-HELP", name: "Membantu Penyelenggaraan Acara Sekolah", defaultPoints: 10, description: "Menjadi panitia atau membantu guru secara sukarela" });
+  const [typeRAtt] = await db.insert(disciplineTypes).values({ schoolId: school1Id, categoryId: catR3.insertId, code: "R-ATT", name: "Kehadiran Sempurna (100% Attendance)", defaultPoints: 15, description: "Tidak pernah absen selama 1 semester" });
+
+  console.log("Discipline Types seeded.");
+
+  // 14. Create discipline sanction thresholds
+  await db.insert(disciplineSanctionThresholds).values([
+    { schoolId: school1Id, minPoints: 20, sanctionName: "Pembinaan BK & Teguran Lisan", actionRequired: "PEMBINAAN_BK", description: "Panggilan pertama oleh guru BK untuk konseling" },
+    { schoolId: school1Id, minPoints: 40, sanctionName: "Panggilan Orang Tua I", actionRequired: "PANGGILAN_ORANG_TUA", description: "Panggilan orang tua siswa ke sekolah untuk diskusi" },
+    { schoolId: school1Id, minPoints: 60, sanctionName: "Surat Peringatan Pertama (SP 1)", actionRequired: "SURAT_PERINGATAN", description: "Penerbitan SP 1 dan perjanjian tertulis" },
+    { schoolId: school1Id, minPoints: 80, sanctionName: "Skorsing 3 Hari", actionRequired: "SKORSING", description: "Siswa belajar di rumah selama 3 hari kerja" },
+    { schoolId: school1Id, minPoints: 100, sanctionName: "Dikembalikan kepada Orang Tua", actionRequired: "DIKELUARKAN", description: "Pemberhentian hak siswa belajar di sekolah secara permanen" },
+  ]);
+  console.log("Sanction Thresholds seeded.");
+
+  // 15. Seed mock incidents
+  // Incident 1: Late violation for Student 3 (Bambang)
+  const [inc1] = await db.insert(disciplineIncidents).values({
+    schoolId: school1Id,
+    reporterUserId: uTeacher1.insertId, // Reported by Budi
+    handlerTeacherId: teacher1Id, // Handled by Budi
+    incidentDate: "2026-06-08",
+    incidentTime: "07:15:00",
+    location: "Gerbang Depan Sekolah",
+    description: "Siswa datang terlambat 15 menit tanpa alasan yang jelas.",
+    status: "VERIFIED",
+  });
+  
+  await db.insert(disciplineIncidentStudents).values({
+    incidentId: inc1.insertId,
+    studentId: student3Id, // Bambang
+    classId: class1Id,
+    academicYearId,
+    disciplineTypeId: typeVLate.insertId,
+    pointSnapshot: 5,
+    notes: "Terlambat karena macet di jalan, namun tidak membawa surat izin.",
+  });
+
+  await db.insert(disciplineIncidentAttachments).values({
+    incidentId: inc1.insertId,
+    fileUrl: "/uploads/discipline/late_evidence.jpg",
+    fileType: "IMAGE",
+    fileName: "late_evidence.jpg",
+    fileSize: 102400,
+  });
+
+  // Incident 2: Olympiad Reward for Student 1 (Aditya)
+  const [inc2] = await db.insert(disciplineIncidents).values({
+    schoolId: school1Id,
+    reporterUserId: uTeacher2.insertId, // Reported by Ani
+    handlerTeacherId: teacher1Id, // Assigned to Budi for verification
+    incidentDate: "2026-06-09",
+    incidentTime: "10:00:00",
+    location: "Aula Sekolah",
+    description: "Siswa meraih medali emas pada olimpiade sains tingkat provinsi.",
+    status: "PENDING",
+  });
+
+  await db.insert(disciplineIncidentStudents).values({
+    incidentId: inc2.insertId,
+    studentId: student1Id, // Aditya
+    classId: class1Id,
+    academicYearId,
+    disciplineTypeId: typeROlymp.insertId,
+    pointSnapshot: 30,
+    notes: "Meraih medali emas olimpiade fisika.",
+  });
+
+  await db.insert(disciplineIncidentWitnesses).values({
+    incidentId: inc2.insertId,
+    userId: uTeacher3.insertId, // Joko as witness
+    witnessName: "Joko Susilo, M.Si.",
+    witnessRole: "TEACHER",
+    notes: "Mendampingi siswa saat menerima medali.",
+  });
+
+  await db.insert(disciplineIncidentAttachments).values({
+    incidentId: inc2.insertId,
+    fileUrl: "/uploads/discipline/olympiad_certificate.pdf",
+    fileType: "PDF",
+    fileName: "olympiad_certificate.pdf",
+    fileSize: 512000,
+  });
+
+  console.log("Mock Incidents seeded.");
+
   console.log("=================================================");
   console.log("RICH SEEDING COMPLETED SUCCESSFULLY!");
   console.log("=================================================");

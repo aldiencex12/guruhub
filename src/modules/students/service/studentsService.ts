@@ -6,14 +6,14 @@ import { classes } from "../../../schema/classes";
 import { schedules } from "../../../schema/schedules";
 import { db } from "../../../db";
 import { eq, inArray, and, isNull } from "drizzle-orm";
-import { UserContext, getTeacherIdFromUserId } from "../../../utils/rbac";
+import { type UserContext, getTeacherIdFromUserId } from "../../../utils/rbac";
 
 export class StudentsService {
   private repository = new StudentsRepository();
 
   async getAllStudents(
     schoolId: number,
-    options: { page: number; limit: number; search?: string; status?: "Aktif" | "Nonaktif" },
+    options: { page: number; limit: number; search?: string; status?: "Aktif" | "Nonaktif"; classId?: number },
     user: UserContext
   ) {
     let allowedStudentIds: number[] | undefined;
@@ -43,6 +43,25 @@ export class StudentsService {
       }
     }
 
+    if (options.classId) {
+      const members = await db.select({ studentId: classMembers.studentId })
+        .from(classMembers)
+        .where(and(
+          eq(classMembers.schoolId, schoolId),
+          eq(classMembers.classId, options.classId),
+          isNull(classMembers.deletedAt)
+        ));
+      const classStudentIds = members.map(m => m.studentId);
+      if (classStudentIds.length === 0) {
+        allowedStudentIds = [-1];
+      } else if (allowedStudentIds) {
+        allowedStudentIds = allowedStudentIds.filter(id => classStudentIds.includes(id));
+        if (allowedStudentIds.length === 0) allowedStudentIds = [-1];
+      } else {
+        allowedStudentIds = classStudentIds;
+      }
+    }
+
     return await this.repository.findAll(schoolId, options, allowedStudentIds);
   }
 
@@ -56,9 +75,11 @@ export class StudentsService {
 
   async createStudent(schoolId: number, studentData: Omit<typeof students.$inferInsert, "schoolId" | "id">) {
     // Cek duplikasi NISN secara nasional
-    const existingNisn = await this.repository.findByNisn(studentData.nisn);
-    if (existingNisn) {
-      throw new ConflictError("NISN siswa sudah terdaftar secara nasional");
+    if (studentData.nisn) {
+      const existingNisn = await this.repository.findByNisn(studentData.nisn);
+      if (existingNisn) {
+        throw new ConflictError("NISN siswa sudah terdaftar secara nasional");
+      }
     }
 
     return await this.repository.create(schoolId, studentData);

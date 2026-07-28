@@ -784,3 +784,105 @@ export function generateTeacherListHtml(data: {
     </html>
   `;
 }
+
+export function generateSanctionReportHtml(data: {
+  school: { foundationName?: string; regionalName?: string; name: string; accreditation?: string; address?: string; phone?: string; email?: string; website?: string; logoUrl?: string };
+  student: { name: string; nisn: string; className: string };
+  sanction: { sanctionType: string; cumulativePoints: number; issuedDate: string; notes?: string };
+  printDate: string;
+}) {
+  const foundation = data.school.foundationName || "YAYASAN HANG TUAH PENGURUS";
+  const regional = data.school.regionalName || "DAERAH SURABAYA";
+  const schoolName = data.school.name || "SMP HANG TUAH 5 SIDOARJO";
+  const accreditation = data.school.accreditation || "Terakreditasi \" A \"";
+  const address = data.school.address || "Perum TNI AL Blok B. 16 / 18 TELP. (031) 8060725, Sidoarjo 61721";
+  const email = data.school.email || "smpht5sda@gmail.com";
+  const website = data.school.website || "www.smphangtuah5sidoarjo.sch.id";
+  const logo = data.school.logoUrl || "/logo-hangtuah.png";
+
+  return `
+    <!DOCTYPE html>
+    <html lang="id">
+    <head>
+      <meta charset="UTF-8">
+      <title>Surat Peringatan Kedisiplinan</title>
+      <style>${commonStyle}</style>
+    </head>
+    <body style="font-family: sans-serif; color: #000; padding: 20px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 4px solid #000; padding-bottom: 6px;">
+        <div style="width: 96px; height: 96px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+          <img src="${logo}" alt="Logo Yayasan" style="height: 96px; width: 96px; object-fit: contain;" />
+        </div>
+        <div style="flex-grow: 1; text-align: center; padding: 0 10px;">
+          <h2 style="font-size: 15px; font-weight: bold; text-transform: uppercase; margin: 0; line-height: 1.2;">${foundation}</h2>
+          <h2 style="font-size: 15px; font-weight: bold; text-transform: uppercase; margin: 0; line-height: 1.2;">${regional}</h2>
+          <h1 style="font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; margin: 4px 0 2px 0; line-height: 1;">${schoolName}</h1>
+          <p style="font-size: 13px; font-weight: 600; margin: 0;">${accreditation}</p>
+          <p style="font-size: 11px; font-weight: bold; margin: 4px 0 0 0;">${address}</p>
+          <p style="font-size: 10px; font-weight: bold; color: #003399; margin: 2px 0 0 0;">Email : ${email}, website : ${website}</p>
+        </div>
+        <div style="width: 96px; flex-shrink: 0;"></div>
+      </div>
+      <div style="border-bottom: 1px solid #000; margin-top: 2px; margin-bottom: 24px;"></div>
+
+      <div style="text-align: center; margin-bottom: 24px;">
+        <h2 style="font-size: 16px; font-weight: bold; text-transform: uppercase; text-decoration: underline; letter-spacing: 1px; margin: 0;">SURAT PERINGATAN KEDISIPLINAN</h2>
+        <p style="font-size: 12px; font-weight: 600; text-transform: uppercase; margin-top: 4px;">NOMOR: SP/${data.sanction.sanctionType}/${new Date().getFullYear()}</p>
+      </div>
+
+      <div style="font-size: 12px; margin-bottom: 20px; line-height: 1.8;">
+        <p>Berdasarkan catatan rekam jejak kedisiplinan siswa pada platform GuruHub, dengan ini menerangkan bahwa:</p>
+        <table style="width: 100%; margin: 12px 0; font-size: 12px;">
+          <tr>
+            <td style="width: 140px; font-weight: bold;">Nama Siswa</td>
+            <td style="width: 10px;">:</td>
+            <td style="font-weight: bold;">${data.student.name}</td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold;">NISN</td>
+            <td>:</td>
+            <td>${data.student.nisn || "-"}</td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold;">Kelas</td>
+            <td>:</td>
+            <td>${data.student.className}</td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold;">Total Poin Demerit</td>
+            <td>:</td>
+            <td style="color: #dc2626; font-weight: bold;">${data.sanction.cumulativePoints} Poin Demerit</td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold;">Tingkat Sanksi</td>
+            <td>:</td>
+            <td><strong style="color: #4f46e5;">${data.sanction.sanctionType}</strong></td>
+          </tr>
+        </table>
+
+        <p style="margin-top: 12px;">
+          Catatan / Tindakan Pembinaan:<br>
+          <em>${data.sanction.notes || "Siswa bersangkutan diminta untuk segera melakukan konseling bersama Tim Bimbingan Konseling (BK) dan melengkapi berkas komitmen kedisiplinan."}</em>
+        </p>
+      </div>
+
+      <table style="width: 100%; margin-top: 48px; font-size: 11px; text-align: center;">
+        <tr>
+          <td style="width: 33.33%; vertical-align: top;">
+            <p style="margin-bottom: 60px;">Wali Kelas</p>
+            <p style="font-weight: bold; text-decoration: underline;">( .................................... )</p>
+          </td>
+          <td style="width: 33.33%; vertical-align: top;">
+            <p style="margin-bottom: 60px;">Guru Bimbingan Konseling (BK)</p>
+            <p style="font-weight: bold; text-decoration: underline;">( .................................... )</p>
+          </td>
+          <td style="width: 33.33%; vertical-align: top;">
+            <p style="margin-bottom: 60px;">Mengetahui,<br>Kepala Sekolah</p>
+            <p style="font-weight: bold; text-decoration: underline;">( .................................... )</p>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+}

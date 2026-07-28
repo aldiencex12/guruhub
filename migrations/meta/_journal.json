@@ -50,6 +50,34 @@
       "when": 1784341445157,
       "tag": "0006_lush_la_nuit",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1784823213972,
+      "tag": "0008_discipline_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1784991554280,
+      "tag": "0008_fuzzy_johnny_storm",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1784991566832,
+      "tag": "0009_lyrical_shaman",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1784991578674,
+      "tag": "0010_clear_maximus",
+      "breakpoints": true
     }
   ]
 }

@@ -83,4 +83,15 @@ export const pdfGeneratorRoutes = new Elysia({ prefix: "/pdf" })
     );
   }, {
     beforeHandle: requireRoles(["SuperAdmin", "SchoolAdmin", "Principal", "Teacher", "HomeroomTeacher"])
+  })
+  // Sanction SP: BKTeacher, Counselor, Principal, SchoolAdmin, SuperAdmin, Polsis
+  .get("/sanctions/:sanctionId", ({ params: { sanctionId }, headers, user }) => {
+    return controller.exportSanction(
+      Number(sanctionId),
+      Number(headers["x-school-id"]),
+      user.id,
+      user.role
+    );
+  }, {
+    beforeHandle: requireRoles(["SuperAdmin", "SchoolAdmin", "Principal", "BKTeacher", "Counselor", "Polsis"])
   });

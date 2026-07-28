@@ -11,6 +11,7 @@ import { teachingJournals } from "../../../schema/teachingJournals";
 import { assessments, assessmentScores } from "../../../schema/assessments";
 import { classMembers } from "../../../schema/classMembers";
 import { reportCards, reportCardSubjects, reportCardAttendances, studentExtracurriculars, studentAchievements, p5Projects, extracurriculars } from "../../../schema/reportCards";
+import { disciplineSanctionLogs } from "../../../schema/discipline";
 import { eq, and, isNull, sql } from "drizzle-orm";
 import puppeteer from "puppeteer";
 import {
@@ -19,7 +20,8 @@ import {
   generateTeachingJournalHtml,
   generateAssessmentReportHtml,
   generateStudentListHtml,
-  generateTeacherListHtml
+  generateTeacherListHtml,
+  generateSanctionReportHtml
 } from "../templates/pdfTemplates";
 
 export class PdfGeneratorService {
@@ -28,11 +30,20 @@ export class PdfGeneratorService {
    */
   private async renderHtmlToPdf(html: string): Promise<Buffer> {
     const browser = await puppeteer.launch({
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--no-zygote",
+        "--single-process",
+        "--disable-gpu",
+        "--disable-software-rasterizer"
+      ],
       headless: true
     });
+    let page: any = null;
     try {
-      const page = await browser.newPage();
+      page = await browser.newPage();
       await page.setContent(html, { waitUntil: "domcontentloaded" });
       const pdf = await page.pdf({
         format: "A4",
@@ -41,7 +52,10 @@ export class PdfGeneratorService {
       });
       return Buffer.from(pdf);
     } finally {
-      await browser.close();
+      if (page) {
+        try { await page.close(); } catch {}
+      }
+      try { await browser.close(); } catch {}
     }
   }
 
@@ -130,8 +144,8 @@ export class PdfGeneratorService {
       },
       student: {
         name: student.name,
-        nis: student.nis,
-        nisn: student.nisn,
+        nis: student.nisn || "-",
+        nisn: student.nisn || "-",
         className: cls.name
       },
       academicYear: {
@@ -499,7 +513,6 @@ export class PdfGeneratorService {
     const activeStudents = await db
       .select({
         name: students.name,
-        nis: students.nis,
         nisn: students.nisn,
         gender: students.gender
       })
@@ -516,6 +529,13 @@ export class PdfGeneratorService {
       )
       .orderBy(students.name);
 
+    const formattedActiveStudents = activeStudents.map((s) => ({
+      name: s.name,
+      nis: s.nisn || "-",
+      nisn: s.nisn || "-",
+      gender: s.gender,
+    }));
+
     const html = generateStudentListHtml({
       school: {
         name: school.name,
@@ -527,7 +547,7 @@ export class PdfGeneratorService {
         year: ay.year,
         semester: ay.semester
       },
-      students: activeStudents,
+      students: formattedActiveStudents,
       printDate: new Date().toLocaleDateString("id-ID", { year: "numeric", month: "long", day: "numeric" })
     });
 
@@ -589,6 +609,72 @@ export class PdfGeneratorService {
         address: school.address || "-"
       },
       teachers: teacherReport,
+      printDate: new Date().toLocaleDateString("id-ID", { year: "numeric", month: "long", day: "numeric" })
+    });
+
+    return this.renderHtmlToPdf(html);
+  }
+
+  /**
+   * 7. Export PDF Surat Peringatan (Sanction SP)
+   */
+  async generateSanctionPdf(schoolId: number, sanctionId: number, userId: number, role: string): Promise<Buffer> {
+    if (role === "Student") {
+      throw new Error("403: Forbidden");
+    }
+
+    const sanctionData = await db.query.disciplineSanctionLogs.findFirst({
+      where: and(eq(disciplineSanctionLogs.id, sanctionId), eq(disciplineSanctionLogs.schoolId, schoolId))
+    });
+
+    if (!sanctionData) {
+      throw new Error("404: Sanction record not found");
+    }
+
+    const [schoolData, studentData] = await Promise.all([
+      db.select().from(schools).where(eq(schools.id, schoolId)).limit(1),
+      db.select().from(students).where(eq(students.id, sanctionData.studentId)).limit(1),
+    ]);
+
+    const school = schoolData[0];
+    const student = studentData[0];
+
+    if (!school || !student) {
+      throw new Error("404: School or Student metadata not found");
+    }
+
+    const cm = await db.query.classMembers.findFirst({
+      where: eq(classMembers.studentId, student.id)
+    });
+    let className = "-";
+    if (cm) {
+      const cls = await db.query.classes.findFirst({ where: eq(classes.id, cm.classId) });
+      if (cls) className = cls.name;
+    }
+
+    const html = generateSanctionReportHtml({
+      school: {
+        foundationName: school.foundationName || undefined,
+        regionalName: school.regionalName || undefined,
+        name: school.name,
+        accreditation: school.accreditation || undefined,
+        address: school.address || undefined,
+        phone: school.phone || undefined,
+        email: school.email || undefined,
+        website: school.website || undefined,
+        logoUrl: school.logoUrl || undefined
+      },
+      student: {
+        name: student.name,
+        nisn: student.nisn || "-",
+        className
+      },
+      sanction: {
+        sanctionType: sanctionData.sanctionType,
+        cumulativePoints: sanctionData.cumulativePoints,
+        issuedDate: new Date(sanctionData.createdAt || Date.now()).toLocaleDateString("id-ID"),
+        notes: sanctionData.notes || undefined
+      },
       printDate: new Date().toLocaleDateString("id-ID", { year: "numeric", month: "long", day: "numeric" })
     });
 

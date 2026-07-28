@@ -1,6 +1,6 @@
 import { Elysia, t } from "elysia";
 import { AttendanceController } from "../controller/attendanceController";
-import { CreateAttendanceDto, UpdateAttendanceDto } from "../dto/attendanceDto";
+import { CreateAttendanceDto, UpdateAttendanceDto, CreateClassDailyAttendanceDto } from "../dto/attendanceDto";
 import { authMiddleware, requireRoles } from "../../../middleware/auth";
 import { tenantMiddleware } from "../../../middleware/tenant";
 
@@ -74,11 +74,11 @@ export const attendanceRoutes = new Elysia({ prefix: "/attendances" })
     })
   })
   
-  // Rute Pembacaan (Boleh diakses oleh SuperAdmin, SchoolAdmin, Principal, Teacher, HomeroomTeacher)
+  // Rute Pembacaan (Boleh diakses oleh SuperAdmin, SchoolAdmin, Principal, Teacher, HomeroomTeacher, BKTeacher, Counselor, Polsis)
   .group("", (app) =>
     app
       .guard({
-        beforeHandle: requireRoles(["SuperAdmin", "SchoolAdmin", "Principal", "Teacher", "HomeroomTeacher"])
+        beforeHandle: requireRoles(["SuperAdmin", "SchoolAdmin", "Principal", "Teacher", "HomeroomTeacher", "BKTeacher", "Counselor", "Polsis"])
       })
       // 1. GET /attendances
       .get("/", controller.getAll, {
@@ -90,7 +90,9 @@ export const attendanceRoutes = new Elysia({ prefix: "/attendances" })
       .get("/recap", controller.getRecap, {
         query: t.Object({
           classId: t.Numeric({ error: "Class ID harus berupa angka" }),
-          month: t.String({ error: "Bulan harus berupa string YYYY-MM" })
+          month: t.Optional(t.String()),
+          semester: t.Optional(t.Numeric()),
+          year: t.Optional(t.Numeric())
         })
       })
       // 2. GET /attendances/:id
@@ -101,11 +103,11 @@ export const attendanceRoutes = new Elysia({ prefix: "/attendances" })
       })
   )
 
-  // Rute Modifikasi (Hanya boleh diakses oleh SuperAdmin, SchoolAdmin, Principal, Teacher)
+  // Rute Modifikasi (Boleh diakses oleh SuperAdmin, SchoolAdmin, Principal, Teacher, BKTeacher, Counselor)
   .group("", (app) =>
     app
       .guard({
-        beforeHandle: requireRoles(["SuperAdmin", "SchoolAdmin", "Principal", "Teacher"])
+        beforeHandle: requireRoles(["SuperAdmin", "SchoolAdmin", "Principal", "Teacher", "BKTeacher", "Counselor"])
       })
       // 3. POST /attendances
       .post("/", controller.create, {
@@ -113,6 +115,10 @@ export const attendanceRoutes = new Elysia({ prefix: "/attendances" })
         response: {
           200: "AttendanceResponse"
         }
+      })
+      // 3b. POST /attendances/daily (Input Presensi Harian BK per Kelas)
+      .post("/daily", controller.createDaily, {
+        body: CreateClassDailyAttendanceDto,
       })
       // 4. PUT /attendances/:id
       .put("/:id", controller.update, {
@@ -122,6 +128,7 @@ export const attendanceRoutes = new Elysia({ prefix: "/attendances" })
         }
       })
   )
+
 
   // Rute Penghapusan (Hanya boleh diakses oleh SuperAdmin, SchoolAdmin, Principal)
   .group("", (app) =>

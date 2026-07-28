@@ -19,6 +19,8 @@ import { reportCardRoutes } from "./modules/report-cards/routes/reportCardRoutes
 import { dashboardRoutes } from "./modules/dashboard/routes/dashboardRoutes";
 import { pdfGeneratorRoutes } from "./modules/pdf-generator/routes/pdfGeneratorRoutes";
 import { importRoutes } from "./modules/import/routes/importRoutes";
+import { disciplineRoutes } from "./modules/discipline/routes/disciplineRoutes";
+import { schoolsRoutes } from "./modules/schools/routes/schoolsRoutes";
 import { swagger } from "@elysiajs/swagger";
 import { cors } from "@elysiajs/cors";
 
@@ -85,6 +87,8 @@ const app = new Elysia()
   .use(dashboardRoutes)
   .use(pdfGeneratorRoutes)
   .use(importRoutes)
+  .use(disciplineRoutes)
+  .use(schoolsRoutes)
   .listen({
     port: process.env.PORT ? parseInt(process.env.PORT) : 8000,
     hostname: "0.0.0.0"

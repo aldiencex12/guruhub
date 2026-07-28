@@ -9,7 +9,7 @@ export const dashboardRoutes = new Elysia({ prefix: "/dashboard" })
   .use(tenantMiddleware)
   .use(authMiddleware)
   .guard({
-    beforeHandle: requireRoles(["SuperAdmin", "SchoolAdmin", "Principal", "Teacher", "HomeroomTeacher"]),
+    beforeHandle: requireRoles(["SuperAdmin", "SchoolAdmin", "Principal", "Teacher", "HomeroomTeacher", "BKTeacher", "Counselor"]),
   })
   .get("/summary", controller.getSummary)
   .get("/attendance", controller.getAttendance)

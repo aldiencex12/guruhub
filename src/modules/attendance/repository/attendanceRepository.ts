@@ -219,12 +219,11 @@ export class AttendanceRepository {
 
     if (filters.teacherId) {
       if (filters.allowedHomeroomClassIds && filters.allowedHomeroomClassIds.length > 0) {
-        conditions.push(
-          or(
-            eq(attendances.teacherId, filters.teacherId),
-            inArray(schedules.classId, filters.allowedHomeroomClassIds)
-          )
+        const cond = or(
+          eq(attendances.teacherId, filters.teacherId),
+          inArray(schedules.classId, filters.allowedHomeroomClassIds)
         );
+        if (cond) conditions.push(cond);
       } else {
         conditions.push(eq(attendances.teacherId, filters.teacherId));
       }
@@ -312,6 +311,77 @@ export class AttendanceRepository {
       students: members,
       attendances: attendancesInMonth,
       details,
+    };
+  }
+
+  async getSemesterRecapData(schoolId: number, classId: number, year: number, semester: 1 | 2) {
+    const classRecord = await db
+      .select()
+      .from(classes)
+      .where(and(eq(classes.id, classId), eq(classes.schoolId, schoolId), isNull(classes.deletedAt)))
+      .limit(1);
+
+    if (classRecord.length === 0) return null;
+
+    const members = await db
+      .select({
+        studentId: classMembers.studentId,
+        studentName: students.name,
+        nisn: students.nisn,
+      })
+      .from(classMembers)
+      .innerJoin(students, eq(classMembers.studentId, students.id))
+      .where(and(eq(classMembers.classId, classId), isNull(students.deletedAt)));
+
+    const startMonth = semester === 1 ? 7 : 1;
+    const endMonth = semester === 1 ? 12 : 6;
+    const startDate = `${year}-${String(startMonth).padStart(2, "0")}-01`;
+    const endDate = `${year}-${String(endMonth).padStart(2, "0")}-31`;
+
+    const attendancesInSemester = await db
+      .select({
+        id: attendances.id,
+        attendanceDate: attendances.attendanceDate,
+        scheduleId: attendances.scheduleId,
+        subjectName: subjects.name,
+      })
+      .from(attendances)
+      .innerJoin(schedules, eq(attendances.scheduleId, schedules.id))
+      .innerJoin(subjects, eq(schedules.subjectId, subjects.id))
+      .where(
+        and(
+          eq(attendances.schoolId, schoolId),
+          eq(schedules.classId, classId),
+          sql`${attendances.attendanceDate} >= ${startDate}`,
+          sql`${attendances.attendanceDate} <= ${endDate}`,
+          isNull(attendances.deletedAt),
+          isNull(schedules.deletedAt),
+          isNull(subjects.deletedAt)
+        )
+      );
+
+    const attendanceIds = attendancesInSemester.map(a => a.id);
+    let details: any[] = [];
+    if (attendanceIds.length > 0) {
+      details = await db
+        .select({
+          id: attendanceDetails.id,
+          attendanceId: attendanceDetails.attendanceId,
+          studentId: attendanceDetails.studentId,
+          status: attendanceDetails.status,
+          notes: attendanceDetails.notes,
+        })
+        .from(attendanceDetails)
+        .where(inArray(attendanceDetails.attendanceId, attendanceIds));
+    }
+
+    return {
+      class: classRecord[0],
+      students: members,
+      attendances: attendancesInSemester,
+      details,
+      semester,
+      year,
     };
   }
 }

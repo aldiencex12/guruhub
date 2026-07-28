@@ -132,4 +132,21 @@ export class PdfGeneratorController {
       return this.handleError(err);
     }
   }
+
+  /**
+   * 7. Export PDF Sanction (Surat Peringatan)
+   */
+  async exportSanction(sanctionId: number, schoolId: number, userId: number, role: string) {
+    try {
+      const buffer = await this.pdfService.generateSanctionPdf(schoolId, sanctionId, userId, role);
+      return new Response(buffer, {
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": `attachment; filename="surat-peringatan-${sanctionId}.pdf"`
+        }
+      });
+    } catch (err: any) {
+      return this.handleError(err);
+    }
+  }
 }

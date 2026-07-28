@@ -10,6 +10,7 @@ export * from "./attendances";
 export * from "./journals";
 export * from "./assessments";
 export * from "./raports";
+export * from "./discipline";
 export * from "./notifications";
 export * from "./auditLogs";
 export * from "./classMembers";

@@ -81,7 +81,8 @@ export const studentsRoutes = new Elysia({ prefix: "/students" })
       page: t.Optional(t.Numeric({ default: 1 })),
       limit: t.Optional(t.Numeric({ default: 10 })),
       search: t.Optional(t.String()),
-      status: t.Optional(t.Union([t.Literal("Aktif"), t.Literal("Nonaktif")]))
+      status: t.Optional(t.Union([t.Literal("Aktif"), t.Literal("Nonaktif")])),
+      classId: t.Optional(t.Numeric())
     }),
     response: {
       200: "StudentsListResponse"
