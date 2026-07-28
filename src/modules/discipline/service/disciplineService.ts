@@ -134,6 +134,20 @@ export class DisciplineService {
   async createIncident(schoolId: number, userId: number, data: any) {
     const { students, witnesses, attachments, ...incidentData } = data;
 
+    if (incidentData.incidentDate) {
+      let dStr = String(incidentData.incidentDate);
+      if (dStr.includes("GMT") || dStr.includes("T")) {
+        const d = new Date(incidentData.incidentDate);
+        if (!isNaN(d.getTime())) {
+          const year = d.getFullYear();
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          dStr = `${year}-${month}-${day}`;
+        }
+      }
+      incidentData.incidentDate = dStr;
+    }
+
     // Fetch active academic year fallback
     let defaultAcademicYearId: number | undefined = undefined;
     const activeAy = await db.query.academicYears.findFirst({
