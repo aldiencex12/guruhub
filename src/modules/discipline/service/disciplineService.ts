@@ -33,7 +33,7 @@ export class DisciplineService {
   private async ensureDefaults(schoolId: number) {
     try {
       const categories = await this.repository.getCategories(schoolId, { limit: 1 });
-      if (categories.total === 0) {
+      if (!categories.data || categories.data.length === 0) {
         const catV1 = await this.repository.createCategory(schoolId, {
           code: "CAT-V-MIN",
           name: "Pelanggaran Ringan",
