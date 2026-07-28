@@ -30,33 +30,70 @@ export class DisciplineService {
     return await this.repository.updatePolicy(schoolId, data);
   }
 
+  private async ensureDefaults(schoolId: number) {
+    try {
+      const categories = await this.repository.getCategories(schoolId, { limit: 1 });
+      if (categories.total === 0) {
+        const catV1 = await this.repository.createCategory(schoolId, {
+          code: "CAT-V-MIN",
+          name: "Pelanggaran Ringan",
+          type: "VIOLATION",
+          description: "Pelanggaran tata tertib kategori ringan"
+        });
+        const catV2 = await this.repository.createCategory(schoolId, {
+          code: "CAT-V-MOD",
+          name: "Pelanggaran Sedang",
+          type: "VIOLATION",
+          description: "Pelanggaran tata tertib kategori sedang"
+        });
+        const catV3 = await this.repository.createCategory(schoolId, {
+          code: "CAT-V-MAJ",
+          name: "Pelanggaran Berat",
+          type: "VIOLATION",
+          description: "Pelanggaran tata tertib kategori berat"
+        });
+        const catR1 = await this.repository.createCategory(schoolId, {
+          code: "CAT-R-ACA",
+          name: "Prestasi Akademik",
+          type: "REWARD",
+          description: "Penghargaan atas prestasi bidang akademik"
+        });
+        const catR3 = await this.repository.createCategory(schoolId, {
+          code: "CAT-R-CHA",
+          name: "Karakter & Kedisiplinan",
+          type: "REWARD",
+          description: "Penghargaan atas kepribadian dan kedisiplinan luar biasa"
+        });
+
+        await this.repository.createType(schoolId, { categoryId: catV1.id, code: "V-LATE", name: "Terlambat Masuk Sekolah", defaultPoints: 5, description: "Hadir setelah bel masuk berbunyi" });
+        await this.repository.createType(schoolId, { categoryId: catV1.id, code: "V-UNIFORM", name: "Atribut Seragam Tidak Lengkap", defaultPoints: 5, description: "Tidak memakai dasi, sabuk, atau kaos kaki sesuai ketentuan" });
+        await this.repository.createType(schoolId, { categoryId: catV1.id, code: "V-GROOM", name: "Rambut / Kuku Tidak Rapi", defaultPoints: 5, description: "Rambut panjang untuk siswa laki-laki atau kuku diwarnai" });
+        await this.repository.createType(schoolId, { categoryId: catV1.id, code: "V-PHONE", name: "Membawa HP Tanpa Izin", defaultPoints: 10, description: "Menggunakan ponsel saat jam pelajaran tanpa arahan guru" });
+
+        await this.repository.createType(schoolId, { categoryId: catV2.id, code: "V-SKIP", name: "Membolos Jam Pelajaran", defaultPoints: 15, description: "Meninggalkan kelas tanpa izin selama KBM" });
+        await this.repository.createType(schoolId, { categoryId: catV2.id, code: "V-LANG", name: "Menggunakan Bahasa Tidak Sopan", defaultPoints: 10, description: "Mengucapkan kata-kata kasar di lingkungan sekolah" });
+        await this.repository.createType(schoolId, { categoryId: catV2.id, code: "V-LEAVE", name: "Meninggalkan Sekolah Tanpa Izin", defaultPoints: 20, description: "Keluar dari gerbang sekolah saat jam aktif" });
+
+        await this.repository.createType(schoolId, { categoryId: catV3.id, code: "V-SMOKE", name: "Merokok / Vaping di Area Sekolah", defaultPoints: 30, description: "Membawa atau menggunakan rokok/vape di kawasan sekolah" });
+        await this.repository.createType(schoolId, { categoryId: catV3.id, code: "V-FIGHT", name: "Perkelahian / Tawuran", defaultPoints: 50, description: "Melakukan kekerasan fisik terhadap sesama siswa" });
+
+        await this.repository.createType(schoolId, { categoryId: catR1.id, code: "R-OLYMP", name: "Pemenang Olimpiade / Lomba", defaultPoints: 30, description: "Juara 1, 2, atau 3 tingkat Kabupaten/Provinsi/Nasional" });
+        await this.repository.createType(schoolId, { categoryId: catR3.id, code: "R-ATT", name: "Kehadiran Sempurna (100% Attendance)", defaultPoints: 15, description: "Tidak pernah absen selama 1 semester" });
+      }
+    } catch (e) {
+      console.error("Auto seed defaults failed:", e);
+    }
+  }
+
   // --- Categories ---
   async getCategories(schoolId: number, filters?: { type?: "VIOLATION" | "REWARD"; search?: string; page?: number; limit?: number }) {
+    await this.ensureDefaults(schoolId);
     return await this.repository.getCategories(schoolId, filters || {});
-  }
-
-  async createCategory(schoolId: number, data: any) {
-    // Check code unique
-    const existing = await this.repository.getCategories(schoolId, { search: data.code });
-    if (existing.data.some((c: any) => c.code === data.code)) {
-      throw new ConflictError("Kode kategori sudah digunakan");
-    }
-    return await this.repository.createCategory(schoolId, data);
-  }
-
-  async updateCategory(schoolId: number, categoryId: number, data: any) {
-    const existing = await this.repository.getCategories(schoolId, {});
-    const found = existing.data.find((c: any) => c.id === categoryId);
-    if (!found) throw new NotFoundError("Kategori tidak ditemukan");
-    return await this.repository.updateCategory(schoolId, categoryId, data);
-  }
-
-  async deleteCategory(schoolId: number, categoryId: number) {
-    return await this.repository.deleteCategory(schoolId, categoryId);
   }
 
   // --- Types ---
   async getTypes(schoolId: number, filters?: { categoryId?: number; search?: string; page?: number; limit?: number }) {
+    await this.ensureDefaults(schoolId);
     return await this.repository.getTypes(schoolId, filters || {});
   }
 
